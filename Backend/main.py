@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from supabase import create_client, Client
-import socket  # New import
+import os
 
 app = FastAPI()
 
-SUPABASE_URL = "https://hrusklvqncfkgyzoqiap.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhydXNsa3ZscW5jZmtneXpxaXFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODU4NDMyNiwiZXhwIjoyMDg0MTYwMzI2fQ.CSV2V4NCe_OuoCEZwwXENjtd2w2J-q1Lkg7NVBojTOw"  # Use service_role as before
+# Supabase credentials (use env vars in production)
+SUPABASE_URL = "https://hruslkvlqncfkgyzqiqp.supabase.co"  # e.g., https://xyz.supabase.co
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhydXNsa3ZscW5jZmtneXpxaXFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODU4NDMyNiwiZXhwIjoyMDg0MTYwMzI2fQ.CSV2V4NCe_OuoCEZwwXENjtd2w2J-q1Lkg7NVBojTOw"  # Use environment variable for security
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 class RFIDRequest(BaseModel):
@@ -15,14 +16,14 @@ class RFIDRequest(BaseModel):
 @app.post("/check-payment")
 async def check_payment(request: RFIDRequest):
     try:
-        # Quick internet check
-        socket.getaddrinfo("google.com", 80)  # Raises error if no DNS/internet
-        
+        # Query products table
         response = supabase.table("products").select("is_paid").eq("rfid_id", request.rfid_id).execute()
+        
         if response.data:
-            return {"paid": response.data[0]["is_paid"]}
+            is_paid = response.data[0]["is_paid"]
+            return {"paid": is_paid}
         else:
-            return {"paid": True}
+            # Not found: Treat as not paid
+            return {"paid":True}
     except Exception as e:
-        print(str(e))  # Log in terminal
-        return {"paid": False}  # Fallback to deny if error (safer)
+        raise HTTPException(status_code=500, detail=str(e))

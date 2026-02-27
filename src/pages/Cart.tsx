@@ -83,22 +83,32 @@ export default function Cart() {
     fetchStoreName();
   }, [cart?.store_id]);
 
-  const finalizeSuccessfulPayment = async (paymentId: string) => {
+  const finalizeSuccessfulPayment = async (
+    paymentId: string,
+    orderId?: string,
+    signature?: string
+  ) => {
     if (!cart || !user) return;
 
     try {
       // Call backend function to verify payment and update database
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       const response = await fetch(
         `${supabaseUrl}/functions/v1/verify-razorpay-payment`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
+            // we send both headers just like the create-order call;
+            // the anon key acts as a public JWT so the runtime accepts it.
+            'apikey': anonKey,
+            'Authorization': `Bearer ${anonKey}`,
           },
           body: JSON.stringify({
             payment_id: paymentId,
+            order_id: orderId,
+            signature: signature,
             cart_id: cart.id,
           }),
         }
@@ -194,24 +204,57 @@ export default function Cart() {
 
       console.log('Creating order with amount:', amountInPaise, 'paise');
       
-      // For testing: use a simple order ID format
-      // In production, this must be created via backend (Edge Function/API)
-      const order = {
-        id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        amount: amountInPaise,
-        currency: 'INR',
-      };
-      
-      console.log('Using order:', order.id);
+      // Create order on backend
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;   // ← Make sure this is in your .env
+
+      // When calling a Supabase Edge Function from the browser, you must send
+      // both the `apikey` header and an `Authorization: Bearer <anon key>`
+      // header. The latter is treated as the JWT by the runtime; since we're
+      // not using a real user token here we just reuse the anon key.
+      const createRes = await fetch(`${supabaseUrl}/functions/v1/create-razorpay-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({
+          amount: amountInPaise,
+          currency: 'INR',
+          receipt: cart.id,
+        }),
+    });
+
+      if (!createRes.ok) {
+        const err = await createRes.json().catch(() => ({}));
+        // log full error object for debugging
+        console.error('create order response not ok', err);
+        // prefer a human-readable string if available
+        let message = 'Failed to create Razorpay order';
+        if (err.error) {
+          if (typeof err.error === 'string') {
+            message = err.error;
+          } else {
+            // sometimes Razorpay embeds details inside an object
+            message = JSON.stringify(err.error);
+          }
+        } else if (err.message) {
+          message = err.message;
+        }
+        throw new Error(message);
+      }
+
+      const order = await createRes.json();
+      console.log('Using order from backend:', order.id);
 
       const options = {
         key: razorpayKey,
         amount: order.amount,
         currency: order.currency,
+        order_id: order.id,
         name: 'Scan & Go',
         description: 'Store purchase',
-        // Note: order_id requires backend order creation which needs CORS bypass
-        // For now, using direct payment without order_id (test mode)
         prefill: {
           email: user?.email ?? '',
         },
@@ -219,12 +262,11 @@ export default function Cart() {
           cart_id: cart.id,
           store_id: cart.store_id,
           user_id: user?.id ?? '',
-          order_id: order.id, // Store in notes for reference
         },
         handler: async (response: any) => {
-          console.log('Payment successful:', response.razorpay_payment_id);
+          console.log('Payment successful:', response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature);
           try {
-            await finalizeSuccessfulPayment(response.razorpay_payment_id);
+            await finalizeSuccessfulPayment(response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature);
           } catch (error) {
             console.error('Error finalizing payment:', error);
             toast.error('Payment succeeded but finalization failed. Please contact support.');
