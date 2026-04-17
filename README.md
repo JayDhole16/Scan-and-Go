@@ -1,73 +1,138 @@
-# Welcome to your Lovable project
+# Scan & Go Checkout System
 
-## Project info
+A scan-and-pay retail checkout system where users scan product barcodes in-store, pay via Razorpay, and walk out through an RFID-verified gate.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Tech Stack
 
-## How can I edit this code?
+- **Frontend**: React + Vite + TypeScript + shadcn/ui + Tailwind CSS
+- **Backend**: Supabase (Postgres + Edge Functions)
+- **Payments**: Razorpay
+- **Gate Service**: FastAPI (Python) + RFID hardware
+- **Deployment**: Vercel (frontend)
 
-There are several ways of editing your application.
+## Project Structure
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+├── src/                    # React frontend
+│   ├── pages/              # Route pages
+│   ├── components/         # UI components (shadcn/ui)
+│   ├── hooks/              # useAuth, useCart context hooks
+│   └── integrations/       # Supabase client & types
+├── supabase/
+│   ├── functions/          # Edge Functions (Deno)
+│   │   ├── create-razorpay-order/
+│   │   ├── verify-razorpay-payment/
+│   │   └── rfid-gate-check/
+│   └── migrations/         # Database migrations
+├── Backend/                # FastAPI RFID gate service (Python)
+└── backend-gate/           # Alternative gate service with Docker
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
 
-**Use GitHub Codespaces**
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
+- A [Razorpay](https://razorpay.com) account (test keys work fine)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Frontend Setup
 
-## What technologies are used for this project?
+1. Clone the repo:
+   ```bash
+   git clone <your-repo-url>
+   cd <repo-name>
+   ```
 
-This project is built with:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3. Copy the example env file and fill in your values:
+   ```bash
+   cp .env.example .env
+   ```
 
-## How can I deploy this project?
+4. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+   App runs at `http://localhost:8080`
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Backend (FastAPI) Setup
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+cd Backend
+cp .env.example .env
+# fill in SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
 
-Yes, you can!
+### Supabase Edge Functions
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Deploy edge functions using the Supabase CLI:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+supabase functions deploy create-razorpay-order
+supabase functions deploy verify-razorpay-payment
+supabase functions deploy rfid-gate-check
+```
+
+Set the required secrets in your Supabase project dashboard under **Settings > Edge Functions**:
+
+```
+RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+### Database Migrations
+
+```bash
+supabase db push
+```
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in your values. See `.env.example` for all required variables.
+
+> **Never commit your `.env` file.** It is gitignored by default.
+
+## User Roles
+
+| Role | Access |
+|------|--------|
+| `user` | Scan products, manage cart, pay |
+| `admin` | Store admin — manage products for their store |
+| `super_admin` | Manage all stores and users |
+
+## Payment Flow
+
+1. User scans products and adds them to cart
+2. Frontend calls `create-razorpay-order` Edge Function
+3. Razorpay checkout opens in browser
+4. On success, `verify-razorpay-payment` marks products as paid and deactivates cart
+
+## RFID Gate Flow
+
+Products have an optional `rfid_id`. On exit, the gate hardware sends RFID tags to the `rfid-gate-check` Edge Function (or FastAPI service), which returns whether all items are paid.
+
+## Scripts
+
+```bash
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run lint         # ESLint
+npm run test         # Run tests once
+npm run test:watch   # Run tests in watch mode
+```
+
+## Deployment
+
+The frontend is deployed to Vercel. SPA rewrites are configured in `vercel.json`.
+
+```bash
+vercel deploy
+```

@@ -24,3 +24,28 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Environment variables - NEVER commit these
+.env
+.env.*
+!.env.example
+!.env.*.example
+Backend/.env
+backend-gate/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Supabase local temp
+supabase/.temp/
