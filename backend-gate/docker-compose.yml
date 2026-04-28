@@ -1,40 +1,35 @@
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: rfid_gate_db
+    env_file: .env
     environment:
-      POSTGRES_USER: rfid_user
-      POSTGRES_PASSWORD: rfid_password
-      POSTGRES_DB: rfid_gate
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rfid_user -d rfid_gate"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  fastapi:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: rfid_gate_api
-    environment:
-      DATABASE_URL: postgresql://rfid_user:rfid_password@postgres:5432/rfid_gate
-      LOG_LEVEL: INFO
+    env_file: .env
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - .:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 --reload
+    restart: unless-stopped
 
 volumes:
   postgres_data:

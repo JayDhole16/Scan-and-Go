@@ -11,9 +11,10 @@ FROM python:3.11-slim AS runner
 
 WORKDIR /app
 
+# Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-COPY . .
+COPY main.py .
 
 EXPOSE 8000
 
