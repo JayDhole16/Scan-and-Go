@@ -1,5 +1,8 @@
 # Scan & Go — Checkout System
 
+![CI](https://github.com/your-username/scan-and-go/actions/workflows/ci.yml/badge.svg)
+![Docker](https://github.com/your-username/scan-and-go/actions/workflows/docker.yml/badge.svg)
+
 A scan-and-pay retail checkout system. Customers scan product barcodes with their phone, pay via Razorpay, and walk out through an RFID-verified gate — no cashier, no queue.
 
 Built as a TE Mini Project at A.P. Shah Institute of Technology, Department of CS & Engineering (AI & ML), Academic Year 2025–2026.
@@ -473,6 +476,43 @@ docker run -d -p 8000:8000 --env-file .env --restart unless-stopped rfid-gate
 
 ---
 
+## CI/CD
+
+Three GitHub Actions workflows run automatically:
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| `ci.yml` | Every push / PR to `main` | Lint → Typecheck → Test → Build |
+| `docker.yml` | Push to `main` or version tag | Builds and pushes Docker images to GitHub Container Registry |
+| `deploy.yml` | Push to `main` | Deploys frontend to Vercel |
+
+### Required GitHub Secrets
+
+Go to your repo → Settings → Secrets and variables → Actions → New repository secret:
+
+| Secret | Description |
+|--------|-------------|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key |
+| `VITE_RAZORPAY_KEY_ID` | Razorpay publishable key |
+| `VERCEL_TOKEN` | Vercel API token (Account Settings → Tokens) |
+| `VERCEL_ORG_ID` | Found in `.vercel/project.json` or Vercel dashboard |
+| `VERCEL_PROJECT_ID` | Found in `.vercel/project.json` or Vercel dashboard |
+
+The Docker workflow uses `GITHUB_TOKEN` (automatic, no setup needed) to push images to `ghcr.io`.
+
+### Pulling Docker Images (after first push)
+
+```bash
+# Frontend
+docker pull ghcr.io/your-username/scan-and-go/frontend:main
+
+# RFID Gate Service
+docker pull ghcr.io/your-username/scan-and-go/rfid-gate:main
+```
+
+---
+
 ## Screenshots
 
 > Add screenshots here after deployment.
@@ -509,3 +549,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 [MIT](LICENSE)
+#   S c a n - a n d - G o 
+ 
+ 
