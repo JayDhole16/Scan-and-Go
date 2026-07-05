@@ -474,72 +474,6 @@ docker build -t rfid-gate .
 docker run -d -p 8000:8000 --env-file .env --restart unless-stopped rfid-gate
 ```
 
----
-
-## CI/CD
-
-Three GitHub Actions workflows run automatically:
-
-| Workflow | Trigger | What it does |
-|----------|---------|-------------|
-| `ci.yml` | Every push / PR to `main` | Lint → Typecheck → Test → Build |
-| `docker.yml` | Push to `main` or version tag | Builds and pushes Docker images to GitHub Container Registry |
-| `deploy.yml` | Push to `main` | Deploys frontend to Vercel |
-
-### Required GitHub Secrets
-
-Go to your repo → Settings → Secrets and variables → Actions → New repository secret:
-
-| Secret | Description |
-|--------|-------------|
-| `VITE_SUPABASE_URL` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon key |
-| `VITE_RAZORPAY_KEY_ID` | Razorpay publishable key |
-| `VERCEL_TOKEN` | Vercel API token (Account Settings → Tokens) |
-| `VERCEL_ORG_ID` | Found in `.vercel/project.json` or Vercel dashboard |
-| `VERCEL_PROJECT_ID` | Found in `.vercel/project.json` or Vercel dashboard |
-
-The Docker workflow uses `GITHUB_TOKEN` (automatic, no setup needed) to push images to `ghcr.io`.
-
-### Pulling Docker Images (after first push)
-
-```bash
-# Frontend
-docker pull ghcr.io/your-username/scan-and-go/frontend:main
-
-# RFID Gate Service
-docker pull ghcr.io/your-username/scan-and-go/rfid-gate:main
-```
-
----
-
-## Screenshots
-
-> Add screenshots here after deployment.
-
-| Home / Store Selection | Barcode Scanner | Cart & Payment |
-|------------------------|-----------------|----------------|
-| _screenshot_ | _screenshot_ | _screenshot_ |
-
-| Payment Success | Admin Dashboard | Super Admin |
-|-----------------|-----------------|-------------|
-| _screenshot_ | _screenshot_ | _screenshot_ |
-
----
-
-## Future Improvements
-
-- Webhook-based payment confirmation (more reliable than polling)
-- Push notifications after successful payment
-- Multi-RFID scanning (read all tags at once before gate check)
-- Offline-first cart with sync on reconnect
-- Admin analytics with charts (revenue over time, top products)
-- CI/CD pipeline with GitHub Actions
-- Rate limiting on Edge Functions
-- TypeScript strict mode enabled
-
----
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -548,7 +482,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)
-#   S c a n - a n d - G o 
- 
+[MIT](LICENSE)#   S c a n - a n d - G o  
  
