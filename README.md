@@ -9,6 +9,17 @@ Built as a TE Mini Project at A.P. Shah Institute of Technology, Department of C
 
 ---
 
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Docker Setup](#docker-setup)
+
+---
+
 ## Features
 
 - Barcode scanning via device camera (no dedicated hardware needed for customers)
@@ -26,7 +37,7 @@ Built as a TE Mini Project at A.P. Shah Institute of Technology, Department of C
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|------|-------------|
 | Frontend | React 18, Vite, TypeScript, shadcn/ui, Tailwind CSS |
 | Auth & Database | Supabase (PostgreSQL + Row Level Security) |
 | Payments | Razorpay |
@@ -40,7 +51,7 @@ Built as a TE Mini Project at A.P. Shah Institute of Technology, Department of C
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        Customer's Phone                      │
 │   React SPA (PWA)  ──►  Supabase Auth  ──►  Razorpay SDK   │
@@ -73,7 +84,7 @@ Built as a TE Mini Project at A.P. Shah Institute of Technology, Department of C
 
 ### Payment Flow
 
-```
+```text
 User scans items → Cart → create-razorpay-order (Edge Fn)
   → Razorpay modal → User pays
   → verify-razorpay-payment (Edge Fn)
@@ -85,7 +96,7 @@ User scans items → Cart → create-razorpay-order (Edge Fn)
 
 ### RFID Gate Flow
 
-```
+```text
 Customer approaches gate
   → ESP32 reads RFID tag(s)
   → POST /check-payment to FastAPI (or rfid-gate-check Edge Fn)
@@ -98,7 +109,7 @@ Customer approaches gate
 
 ## Project Structure
 
-```
+```text
 scan-and-go/
 ├── src/                          # React frontend
 │   ├── pages/                    # Route-level components
@@ -166,13 +177,12 @@ VITE_RAZORPAY_KEY_ID=rzp_test_your_key
 
 ### 3. Set Up Database
 
-Apply migrations to your Supabase project:
-
 ```bash
 npx supabase db push
 ```
 
 Or run the SQL files manually in the Supabase SQL editor:
+
 - `supabase/migrations/20260116183001_*.sql` — full schema
 - `supabase/migrations/20260116183014_*.sql` — function fix
 - `supabase/migrations/20260117000000_*.sql` — role policies
@@ -187,10 +197,10 @@ npx supabase functions deploy rfid-gate-check
 
 Set secrets in Supabase Dashboard → Edge Functions → Secrets:
 
-```
-RAZORPAY_KEY_ID      = rzp_test_your_key
-RAZORPAY_KEY_SECRET  = your_secret
-SUPABASE_SERVICE_ROLE_KEY = your_service_role_key
+```bash
+RAZORPAY_KEY_ID=rzp_test_your_key
+RAZORPAY_KEY_SECRET=your_secret
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 ### 5. Run Locally
@@ -482,7 +492,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)#   S c a n - a n d - G o  
- #   S c a n - A n d - G o  
- #   S c a n - A n d - G o  
+[MIT](LICENSE)#   S c a n - a n d - G o 
+ 
+ #   S c a n - A n d - G o 
+ 
+ #   S c a n - A n d - G o 
+ 
  
