@@ -372,7 +372,7 @@ When adding a product in the store admin dashboard, fill in the `RFID ID` field 
 | GET | `/docs` | Swagger UI |
 
 **POST /check-payment**
-```json
+```jsonc
 // Request
 { "rfid_id": "A1B2C3D4" }
 
@@ -381,7 +381,7 @@ When adding a product in the store admin dashboard, fill in the `RFID ID` field 
 ```
 
 **POST /check-payment/bulk**
-```json
+```jsonc
 // Request
 { "rfid_ids": ["A1B2C3D4", "E5F6G7H8"] }
 
@@ -492,10 +492,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)#   S c a n - a n d - G o 
- 
- #   S c a n - A n d - G o 
- 
- #   S c a n - A n d - G o 
- 
- 
+[MIT](LICENSE)
